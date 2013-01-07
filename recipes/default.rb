@@ -2,19 +2,9 @@
 # Cookbook Name:: collectd
 # Recipe:: default
 #
-# Copyright 2010, Atari, Inc
+# Copyright 2013, DrillingInfo, Inc
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-# 
-#     http://www.apache.org/licenses/LICENSE-2.0
-# 
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+#
 #
 
 include_recipe 'build-essential'
@@ -71,4 +61,33 @@ end
 
 service 'collectd' do
   action [:enable, :start]
+end
+
+
+
+
+graphite_host = "10.128.3.26"
+
+collectd_plugin "write_graphite" do
+    template "write_graphite_plugin.conf.erb"
+    config 'Host' => graphite_host
+end
+
+collectd_plugin "cpu"
+collectd_plugin "disk"
+collectd_plugin "memory"
+collectd_plugin "swap"
+
+collectd_plugin "df" do
+  config :report_reserved=>false,
+          "FSType"=>["proc", "sysfs", "fusectl", "debugfs", "securityfs", "devtmpfs", "devpts", "tmpfs"],
+          :ignore_selected=>true
+end
+
+collectd_plugin "interface" do
+  config :interface=>"lo", :ignore_selected=>true
+end
+
+collectd_plugin "syslog" do
+  config :log_level=>"Info"
 end
